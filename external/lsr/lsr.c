@@ -4,9 +4,9 @@
 int main()
 {
     int n;
-    printf("Enter the number of hopes: \n");
+    printf("Enter the number of nodes: \n");
     scanf("%d", &n);
-    int adj[n][n], distance[n], visited[n];
+    int distance[n], visited[n], adj[n][n];
     printf("Enter the adjacency matrix: \n");
     for (int i = 0; i < n; i++)
     {
@@ -28,21 +28,23 @@ int main()
         {
             if (!visited[j] && min > distance[j])
             {
-                min_index = j;
                 min = distance[j];
+                min_index = j;
             }
             visited[min_index] = 1;
         }
-
         for (int d = 0; d < n; d++)
         {
-            if (!visited[d] && adj[min_index][d] && distance[min_index] != INT_MAX && distance[min_index] + adj[min_index][d] < distance[d])
+            if (!visited[d] && adj[min_index][d] &&
+                distance[min_index] != INT_MAX &&
+                distance[min_index] + adj[d][min_index] < distance[d])
             {
-                distance[d] = distance[min_index] + adj[min_index][d];
+                distance[d] = distance[min_index] + adj[d][min_index];
             }
         }
     }
-    for(int i=0;i<n;i++){
-        printf("Node: %d\tdistance: %d\n",i,distance[i]);
+    for (int i = 0; i < n; i++)
+    {
+        printf("Node: %d\t Distance: %d\n", i, distance[i]);
     }
 }
