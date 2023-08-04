@@ -1,32 +1,35 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <unistd.h>
 #include <string.h>
-
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
 int main()
 {
-    int client, y, k = 5, m = 1, p;
+    int k = 10, m = 1, client, y;
     char buffer[1024];
     struct sockaddr_in servAddr;
-    socklen_t addrSize;
     client = socket(PF_INET, SOCK_STREAM, 0);
     servAddr.sin_family = AF_INET;
     servAddr.sin_port = htons(5600);
     servAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+
     y = connect(client, (struct sockaddr *)&servAddr, sizeof(servAddr));
     if (y == -1)
     {
-        printf("Error\n");
+        printf("Error connection failed..\n");
         exit(1);
+    }
+    else
+    {
+        printf("Successfuly connected..\n");
     }
     while (k != 0)
     {
-        if (m <= 5)
+        if (m <= 10)
         {
-            printf("Sending %d\n", m);
+            printf("sending\n");
         }
         if (m % 2 == 0)
         {
@@ -35,30 +38,33 @@ int main()
         else
         {
             strcpy(buffer, "error");
-            printf("Packet lose..\n");
-            for (p = 1; p <= 3; p++)
+            printf("retransmitting..\n");
+            for (int i = 1; i <= 3; i++)
             {
-                printf("waiting for %d seconds\n", p);
+                printf("Waiting for %d\n", i);
             }
-            printf("Retransmitting..\n");
             strcpy(buffer, "frame");
             sleep(3);
         }
         int x = send(client, buffer, 19, 0);
         if (x == -1)
         {
-            printf("Error\n");
+            printf("Error..\n");
             exit(1);
         }
         else
         {
-            printf("Sent %d\n", m);
+            printf("Sent..");
         }
-        int z = recv(client, buffer, 1024, 0);
+        int z = recv(client, buffer, 19, 0);
         if (z == -1)
         {
-            printf("Error in receiving ..\n");
+            printf("Error");
             exit(1);
+        }
+        else
+        {
+            printf("Received..\n");
         }
         k--;
         m++;
@@ -70,6 +76,6 @@ int main()
         {
             printf("Acknowledgement not received..\n");
         }
-        }
+    }
     close(client);
 }
