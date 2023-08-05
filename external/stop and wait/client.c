@@ -12,7 +12,7 @@ int main()
     char buffer[1024];
     struct sockaddr_in servAddr;
     socklen_t addrSize;
-    client = socket(PF_INET, SOCK_STREAM, 0);
+    client = socket(AF_INET, SOCK_STREAM, 0);
     servAddr.sin_family = AF_INET;
     servAddr.sin_port = htons(5600);
     servAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
@@ -62,7 +62,7 @@ int main()
         }
         k--;
         m++;
-        if (strncmp(buffer, "ack", 3) == 0)
+        if (strncmp(buffer, "ack", 5) == 0)
         {
             printf("Acknowledgement received for %d\n", m - 1);
         }
