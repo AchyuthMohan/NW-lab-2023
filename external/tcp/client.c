@@ -14,8 +14,9 @@ int main(){
     servAddr.sin_family=AF_INET;
     servAddr.sin_port=htons(5600);
     servAddr.sin_addr.s_addr=inet_addr("127.0.0.1");
+    connect(client,(struct sockaddr *)&servAddr,sizeof(servAddr));
     while(1){
-        connect(client,(struct sockaddr *)&servAddr,sizeof(servAddr));
+        
         printf("Enter the message content: \n");
         scanf("%s",buffer);
         if(strcmp(buffer,"exit")==0){

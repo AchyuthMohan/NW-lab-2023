@@ -23,9 +23,9 @@ int main(){
         printf("Error\n");
         exit(1);
     }
-    
+    client=accept(server,(struct sockaddr *)&clientAddr,&clientAddrSize);
     while(1){
-        client=accept(server,(struct sockaddr *)&clientAddr,&clientAddrSize);
+        
         int x=recv(client,buffer,1024,0);
         printf("Message from client: \n");
         printf("%s",buffer);
