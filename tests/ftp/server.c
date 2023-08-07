@@ -51,9 +51,6 @@ int main(){
             break;
         }
         fprintf(fp,"%s",buffer);
-        if(strcmp(buffer,"end")==0){
-            break;
-        }
         bzero(buffer,1024);
     }
     close(client);
