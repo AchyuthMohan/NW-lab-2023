@@ -10,37 +10,26 @@
 #define BUFFER_SIZE 1024
 
 int main() {
-    int clientSocket;
-    struct sockaddr_in serverAddr;
+    int client;
+    struct sockaddr_in serverAddr,clientAddr;
+    socklen_t clientAddrSize=sizeof(clientAddr);
     char buffer[BUFFER_SIZE];
-
-    // Create socket
-    clientSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (clientSocket < 0) {
+    client = socket(AF_INET, SOCK_STREAM, 0);
+    if (client < 0) {
         perror("Error creating socket");
         exit(EXIT_FAILURE);
     }
-
-    // Set server address
-    memset(&serverAddr, 0, sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(SERVER_PORT);
-    if (inet_pton(AF_INET, SERVER_IP, &serverAddr.sin_addr) <= 0) {
-        perror("Invalid server address");
-        exit(EXIT_FAILURE);
-    }
-
-    // Connect to the server
-    if (connect(clientSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
+    serverAddr.sin_addr.s_addr=inet_addr("127.0.0.1");
+    int y=connect(client,(struct sockaddr *)&serverAddr,clientAddrSize);
+    if (y< 0) {
         perror("Error connecting to server");
         exit(EXIT_FAILURE);
     }
 
-    // Read server response
-    recv(clientSocket, buffer, BUFFER_SIZE, 0);
+    recv(client, buffer, BUFFER_SIZE, 0);
     printf("Server: %s", buffer);
-
-    // Send email commands
     char *emailCommands[] = {
         "HELO localhost\r\n",
         "MAIL FROM: <sender@example.com>\r\n",
@@ -53,13 +42,11 @@ int main() {
     };
 
     for (int i = 0; i < sizeof(emailCommands) / sizeof(emailCommands[0]); i++) {
-        send(clientSocket, emailCommands[i], strlen(emailCommands[i]), 0);
-        recv(clientSocket, buffer, BUFFER_SIZE, 0);
+        send(client, emailCommands[i], strlen(emailCommands[i]), 0);
+        recv(client, buffer, BUFFER_SIZE, 0);
         printf("Server: %s", buffer);
     }
-
-    // Close the socket
-    close(clientSocket);
+    close(client);
 
     return 0;
 }
