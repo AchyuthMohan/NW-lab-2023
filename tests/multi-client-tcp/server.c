@@ -35,16 +35,16 @@ int main(){
         printf("Accept error\n");
         exit(1);
     }
-    // while(1){
-    //     recv(client,buffer,1024,0);
-    //     printf("Client: %s\n",buffer);
-    //     printf("Enter the contents to be send to client: \n");
-    //     scanf("%s",buffer);
-    //     if(strcmp(buffer,"exit")==0){
-    //         break;
-    //     }
-    //     send(client,buffer,sizeof(buffer),0);
-    // }
+    while(1){
+        recv(client,buffer,1024,0);
+        printf("Client: %s\n",buffer);
+        printf("Enter the contents to be send to client: \n");
+        scanf("%s",buffer);
+        if(strcmp(buffer,"exit")==0){
+            break;
+        }
+        send(client,buffer,sizeof(buffer),0);
+    }
     close(server);
     close(client);
     exit(0);

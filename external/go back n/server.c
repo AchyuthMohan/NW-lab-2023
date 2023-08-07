@@ -1,70 +1,54 @@
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
+#include <arpa/inet.h>
 
 #define WINDOW_SIZE 4
-#define PACKET_SIZE 10
-
-void processFrame(char frame[]) {
-    printf("Received Frame: %s\n", frame);
-}
+#define FRAME_COUNT 8
 
 int main() {
-    struct sockaddr_in server, client;
-    int sockfd, newsockfd, n;
-    socklen_t clilen;
-    char buffer[PACKET_SIZE];
+    int server, client;
+    struct sockaddr_in servAddr, clientAddr;
+    socklen_t clientAddrSize = sizeof(clientAddr);
 
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0) {
-        perror("Error opening socket");
-        exit(1);
+    // Create socket
+    server = socket(AF_INET, SOCK_DGRAM, 0);
+    if (server < 0) {
+        perror("Socket creation failed");
+        exit(EXIT_FAILURE);
     }
 
-    bzero((char*)&server, sizeof(server));
-    server.sin_family = AF_INET;
-    server.sin_addr.s_addr = INADDR_ANY;
-    server.sin_port = htons(6500);
+    // Bind socket
+    memset(&servAddr, 0, sizeof(servAddr));
+    servAddr.sin_family = AF_INET;
+    servAddr.sin_addr.s_addr = INADDR_ANY;
+    servAddr.sin_port = htons(12345);
 
-    if (bind(sockfd, (struct sockaddr*)&server, sizeof(server)) < 0) {
+    if (bind(server, (struct sockaddr *)&servAddr, sizeof(servAddr)) < 0) {
         perror("Binding failed");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
-    listen(sockfd, 1);
-    clilen = sizeof(client);
-    newsockfd = accept(sockfd, (struct sockaddr*)&client, &clilen);
-    if (newsockfd < 0) {
-        perror("Error on accept");
-        exit(1);
-    }
+    printf("Server is listening...\n");
 
-    printf("TCP Connection Established.\n");
-
-    int expected_seq = 0;
+    int expected_frame = 0;
 
     while (1) {
-        n = read(newsockfd, buffer, PACKET_SIZE);
-        buffer[n] = '\0';
+        int received_frame;
+        recvfrom(server, &received_frame, sizeof(received_frame), 0, (struct sockaddr *)&clientAddr, &clientAddrSize);
 
-        int received_seq = atoi(buffer);
+        printf("Received frame: %d\n", received_frame);
 
-        if (received_seq == expected_seq) {
-            processFrame(buffer);
-            expected_seq = (expected_seq + 1) % WINDOW_SIZE;
+        if (received_frame == expected_frame) {
+            printf("Sending acknowledgment for frame %d\n", expected_frame);
+            sendto(server, &expected_frame, sizeof(expected_frame), 0, (struct sockaddr *)&clientAddr, clientAddrSize);
+            expected_frame = (expected_frame + 1) % FRAME_COUNT;
+        } else {
+            printf("Discarding frame %d\n", received_frame);
         }
-
-        // Acknowledge the received frame (sequence number) back to the client
-        char ack[2];
-        sprintf(ack, "%d", expected_seq);
-        write(newsockfd, ack, strlen(ack));
     }
 
-    close(newsockfd);
-    close(sockfd);
+    close(server);
     return 0;
 }
