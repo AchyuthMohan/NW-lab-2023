@@ -6,7 +6,7 @@
 #include <arpa/inet.h>
 
 #define SERVER_IP "127.0.0.1"
-#define SERVER_PORT 6655
+#define SERVER_PORT 7000
 #define BUFFER_SIZE 1024
 
 int main() {
