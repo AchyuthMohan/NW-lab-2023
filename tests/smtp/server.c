@@ -1,9 +1,9 @@
 #include<stdio.h>
 #include<stdlib.h>
-#include<unistd.h>
 #include<sys/socket.h>
 #include<arpa/inet.h>
 #include<netinet/in.h>
+#include<unistd.h>
 #include<string.h>
 int main(){
     int server,client;
@@ -12,15 +12,15 @@ int main(){
     char buffer[1024];
     server=socket(AF_INET,SOCK_STREAM,0);
     servAddr.sin_family=AF_INET;
-    servAddr.sin_port=htons(7000);
+    servAddr.sin_port=htons(6000);
     servAddr.sin_addr.s_addr=inet_addr("127.0.0.1");
 
     if(server<0){
-        printf("Error in socket..\n");
+        printf("Error in socket creation..\n");
         exit(1);
     }
     else{
-        printf("Socket created..\n");
+        printf("Socket created successfully..\n");
     }
     int x=bind(server,(struct sockaddr *)&servAddr,sizeof(servAddr));
     if(x<0){
@@ -28,27 +28,24 @@ int main(){
         exit(1);
     }
     else{
-        printf("Binding done\n");
+        printf("Binding successfull..\n");
     }
     if(listen(server,5)==0){
         printf("Listening..\n");
     }
     else{
-        printf("Error\n");
+        printf("Error in listenig..\n");
         exit(1);
     }
-    client=accept(server,(struct sockaddr*)&clientAddr,&clientAddrSize);
-    if(client<0){
-        printf("Error in accept..\n");
-    }
-    strcpy(buffer,"220 Welcome to SMTP server\r\n");
-    send(client,buffer,sizeof(buffer),0);
+    client=accept(server,(struct sockaddr *)&clientAddr,&clientAddrSize);
+    char *welcomeMessage="Welcome to SMTP server\r\n";
+    send(client,welcomeMessage,strlen(welcomeMessage),0);
     while(1){
         recv(client,buffer,1024,0);
-        printf("From client: %s\n",buffer);
+        printf("Client: %s\n",buffer);
         if(strstr(buffer,"QUIT")!=NULL){
-            strcpy(buffer,"221 Good bye\r\n");
-            send(client,buffer,sizeof(buffer),0);
+            char *response="Good Bye\r\n";
+            send(client,response,strlen(response),0);
             break;
         }
         else{
@@ -56,7 +53,7 @@ int main(){
             send(client,response,strlen(response),0);
         }
     }
-    close(server);
     close(client);
+    close(server);
     exit(0);
 }
