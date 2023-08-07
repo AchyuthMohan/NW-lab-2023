@@ -22,14 +22,7 @@ int main(){
     else{
         printf("Socket created successfully..\n");
     }
-    int x=bind(server,(struct sockaddr *)&servAddr,sizeof(servAddr));
-    if(x<0){
-        printf("Error in binding..\n");
-        exit(1);
-    }
-    else{
-        printf("Binding successfull..\n");
-    }
+    bind(server,(struct sockaddr *)&servAddr,sizeof(servAddr));
     if(listen(server,5)==0){
         printf("Listening..\n");
     }
