@@ -6,7 +6,7 @@
 #include <arpa/inet.h>
 
 #define SERVER_IP "127.0.0.1"
-#define SERVER_PORT 2525
+#define SERVER_PORT 6655
 #define BUFFER_SIZE 1024
 
 int main() {
@@ -22,17 +22,16 @@ int main() {
     }
 
     // Set server address
-    // memset(&serverAddr, 0, sizeof(serverAddr));
+    memset(&serverAddr, 0, sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(SERVER_PORT);
-    // if (inet_pton(AF_INET, SERVER_IP, &serverAddr.sin_addr) <= 0) {
-    //     perror("Invalid server address");
-    //     exit(EXIT_FAILURE);
-    // }
+    if (inet_pton(AF_INET, SERVER_IP, &serverAddr.sin_addr) <= 0) {
+        perror("Invalid server address");
+        exit(EXIT_FAILURE);
+    }
 
     // Connect to the server
-    int x=connect(clientSocket,(struct sockaddr* )&serverAddr,sizeof(serverAddr));
-    if (x < 0) {
+    if (connect(clientSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
         perror("Error connecting to server");
         exit(EXIT_FAILURE);
     }
