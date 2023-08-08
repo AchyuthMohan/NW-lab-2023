@@ -7,32 +7,32 @@
 #include<string.h>
 int main(){
     int server,client;
+    int k=10,m=1;
     struct sockaddr_in servAddr,clientAddr;
     socklen_t clientAddrSize=sizeof(clientAddr);
-    int k=10,m=1;
     char buffer[1024];
     server=socket(AF_INET,SOCK_STREAM,0);
     servAddr.sin_family=AF_INET;
-    servAddr.sin_port=htons(6655);
+    servAddr.sin_port=htons(5566);
     servAddr.sin_addr.s_addr=inet_addr("127.0.0.1");
     if(server<0){
-        printf("Error in socket creating..\n");
+        printf("Error in socket..\n");
         exit(1);
     }
     else{
-        printf("Socket created..\n");
+        printf("Socket created.\n");
     }
     bind(server,(struct sockaddr *)&servAddr,sizeof(servAddr));
     if(listen(server,5)==0){
         printf("Listening..\n");
     }
     else{
-        printf("Listening error\n");
+        printf("Error in listening..\n");
         exit(1);
     }
     client=accept(server,(struct sockaddr *)&clientAddr,&clientAddrSize);
     if(client<0){
-        printf("Error in accept..\n");
+        printf("Accept error..\n");
         exit(1);
     }
     else{
@@ -41,27 +41,32 @@ int main(){
     while(k!=0){
         recv(client,buffer,1024,0);
         if(strcmp(buffer,"frame")==0){
-            printf("Received frame: %d\n",m);
+            printf("Received frame: %d",m);
+        }
+        else{
+            printf("Error in frame..\n");
+            exit(1);
         }
         if(m%2==0){
             strcpy(buffer,"ack");
         }
         else{
             strcpy(buffer,"kca");
-            printf("Retransmitting: \n");
+            printf("Retransmitting..\n");
             for(int i=1;i<=3;i++){
-                printf("Retransmitting in %d seconds\n",i);
+                printf("Waiting for %dseconds\n",i);
             }
-            printf("retransmitting..\n");
             strcpy(buffer,"ack");
+            printf("retransmitting..\n");
             sleep(3);
         }
-        printf("Sending acknowledgement: \n");
         send(client,buffer,sizeof(buffer),0);
-
+        printf("Sent ack..\n");
         k--;
         m++;
     }
     close(client);
     close(server);
+    return 0;
 }
+
