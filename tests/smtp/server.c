@@ -12,22 +12,21 @@ int main(){
     char buffer[1024];
     server=socket(AF_INET,SOCK_STREAM,0);
     servAddr.sin_family=AF_INET;
-    servAddr.sin_port=htons(6000);
+    servAddr.sin_port=htons(2000);
     servAddr.sin_addr.s_addr=inet_addr("127.0.0.1");
-
     if(server<0){
-        printf("Error in socket creation..\n");
+        printf("Error in socket..\n");
         exit(1);
     }
     else{
-        printf("Socket created successfully..\n");
+        printf("Socket created..\n");
     }
     bind(server,(struct sockaddr *)&servAddr,sizeof(servAddr));
     if(listen(server,5)==0){
         printf("Listening..\n");
     }
     else{
-        printf("Error in listenig..\n");
+        printf("Listen error..\n");
         exit(1);
     }
     client=accept(server,(struct sockaddr *)&clientAddr,&clientAddrSize);
@@ -35,18 +34,18 @@ int main(){
     send(client,welcomeMessage,strlen(welcomeMessage),0);
     while(1){
         recv(client,buffer,1024,0);
-        printf("Client: %s\n",buffer);
+        printf("From client: %s\n",buffer);
         if(strstr(buffer,"QUIT")!=NULL){
-            char *response="Good Bye\r\n";
-            send(client,response,strlen(response),0);
+            char *response="Good bye\r\n";
+            send(client,response,sizeof(response),0);
             break;
         }
         else{
             char *response="220 OK\r\n";
-            send(client,response,strlen(response),0);
+            send(client,*response,sizeof(response),0);
         }
     }
-    close(client);
     close(server);
-    exit(0);
+    close(client);
+    return 0;
 }

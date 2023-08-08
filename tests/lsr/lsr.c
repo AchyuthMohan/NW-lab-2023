@@ -4,11 +4,10 @@
 int main()
 {
     int n;
-    
     printf("Enter the number of hops: \n");
     scanf("%d", &n);
     int adj[n][n], distance[n], visited[n];
-    printf("Enter the adjacency matrix: \n");
+    printf("Enter the number adjacency matrix: \n");
     for (int i = 0; i < n; i++)
     {
         for (int j = 0; j < n; j++)
@@ -22,10 +21,9 @@ int main()
         visited[i] = 0;
     }
     distance[0] = 0;
-
     for (int i = 0; i < n - 1; i++)
     {
-        int min_index, min = INT_MAX;
+        int min = INT_MAX, min_index;
         for (int j = 0; j < n; j++)
         {
             if (!visited[j] && min > distance[j])
@@ -42,12 +40,13 @@ int main()
                 distance[min_index] != INT_MAX &&
                 distance[min_index] + adj[d][min_index] < distance[d])
             {
-                distance[d]=distance[min_index]+adj[d][min_index];
+                distance[d] = distance[min_index] + adj[d][min_index];
             }
         }
-        
     }
-    for(int i=0;i<n;i++){
-            printf("Node :%d\tdistance:%d\n",i,distance[i]);
-        }
+    printf("Result: \n");
+    for (int i = 0; i < n; i++)
+    {
+        printf("Node: %d\tdistance: %d\n", i, distance[i]);
+    }
 }

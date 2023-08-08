@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <limits.h>
 struct Link
 {
-    int hop, wt, dest;
+    int s, d, w;
 };
 struct Network
 {
@@ -12,37 +13,36 @@ struct Network
 };
 int main()
 {
-    int h, l, s;
-    printf("Enter the number of hopes: \n");
-    scanf("%d", &h);
-    printf("Enter the number of links: \n");
-    scanf("%d", &l);
-    printf("Enter the start: \n");
-    scanf("%d", &s);
-    struct Network *n = (struct Network *)malloc(sizeof(struct Network));
-    n->h = h;
-    n->l = l;
-    n->link = (struct Link *)malloc(l * sizeof(struct Link));
+    int h, l;
+    printf("Enter the number of hops and links: \n");
+    scanf("%d%d", &h, &l);
     int dist[h];
     for (int i = 0; i < h; i++)
     {
         dist[i] = INT_MAX;
     }
-    dist[s] = 0;
+    struct Network *n = (struct Network *)malloc(sizeof(struct Network));
+    n->h = h;
+    n->l = l;
+    n->link = (struct Link *)malloc(l * sizeof(struct Link));
     for (int i = 0; i < l; i++)
     {
-        printf("Enter the source, dest and wt: \n");
-        scanf("%d", &n->link[i].hop);
-        scanf("%d", &n->link[i].dest);
-        scanf("%d", &n->link[i].wt);
+        printf("Enter the src,dest and wt of link: \n");
+        scanf("%d", &n->link[i].s);
+        scanf("%d", &n->link[i].d);
+        scanf("%d", &n->link[i].w);
     }
+    int s;
+    printf("Enter the start node : \n");
+    scanf("%d", &s);
+    dist[s] = 0;
     for (int i = 1; i < h; i++)
     {
-        for (int j = 0; j < l; j++)
+        for (int j = 0; j < h; j++)
         {
-            int u = n->link[j].hop;
-            int v = n->link[j].dest;
-            int wt = n->link[j].wt;
+            int u = n->link[j].s;
+            int v = n->link[j].d;
+            int wt = n->link[j].w;
             if (u >= 0 && u < h && v >= 0 && v < h && dist[u] != INT_MAX)
             {
                 if (dist[u] + wt < dist[v])
@@ -54,20 +54,16 @@ int main()
     }
     for (int i = 0; i < l; i++)
     {
-        int u = n->link[i].hop;
-        int v = n->link[i].dest;
-        int wt = n->link[i].wt;
-        if (u >= 0 && u < h && v >= 0 && v < h && dist[u] != INT_MAX && dist[u] + wt < dist[v])
+        int u = n->link[i].s;
+        int v = n->link[i].d;
+        int w = n->link[i].w;
+        if (u >= 0 && u < h && v >= 0 && v < h && dist[u] != INT_MAX && dist[u] + w < dist[v])
         {
-            printf("Negative weighted cycles exists..\n");
+            printf("negative cycle exits..\n");
         }
     }
-    printf("Source\tdistsnce\n");
     for (int i = 0; i < h; i++)
     {
-        printf("%d\t%d\n", i, dist[i]);
+        printf("Node: %d\tdistance: %d\n", i, dist[i]);
     }
-    free(n->link);
-    free(n);
-    return 0;
 }
