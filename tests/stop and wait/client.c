@@ -1,61 +1,60 @@
 #include<stdio.h>
 #include<stdlib.h>
-#include<string.h>
+#include<unistd.h>
 #include<sys/socket.h>
 #include<arpa/inet.h>
 #include<netinet/in.h>
-#include<unistd.h>
+#include<string.h>
 int main(){
-    int client,k=10,m=1;
+    int client;
+    struct sockaddr_in servAddr,clientAddr;
+    socklen_t clientAddrSize=sizeof(clientAddr);
+    int k=10,m=1;
     char buffer[1024];
-    struct sockaddr_in servAddr;
     client=socket(AF_INET,SOCK_STREAM,0);
     servAddr.sin_family=AF_INET;
-    servAddr.sin_port=htons(5600);
+    servAddr.sin_port=htons(6655);
     servAddr.sin_addr.s_addr=inet_addr("127.0.0.1");
-    int x=connect(client,(struct sockaddr *)&servAddr,sizeof(servAddr));
-    if(x==-1){
+    if(client<0){
+        printf("Error in socket creating..\n");
+        exit(1);
+    }
+    else{
+        printf("Socket created..\n");
+    }
+    int c=connect(client,(struct sockaddr *)&servAddr,sizeof(servAddr));
+    if(c<0){
         printf("Error in connection..\n");
         exit(1);
     }
     else{
-        printf("Connection established\n");
+        printf("Connected..\n");
     }
     while(k!=0){
         if(m<=10){
-            printf("frame sent");
-        }
-        if(m%2==0){
             strcpy(buffer,"frame");
         }
         else{
             strcpy(buffer,"error");
-            printf("resending frame in :\n");
+            printf("Retransmission required..\n");
             for(int i=1;i<=3;i++){
-                printf("resending in %d seconds\n",i);
+                printf("retransmitting in %dseconds\n",i);
             }
+            printf("retransmitting..\n");
             strcpy(buffer,"frame");
-            printf("Resending\n");
             sleep(3);
         }
-        int z=send(client,buffer,19,0);
-        if(z==-1){
-            printf("Error in sending\n");
-            exit(1);
+        send(client,buffer,sizeof(buffer),0);
+        printf("Send the frame %d\n",m);
+        recv(client,buffer,1024,0);
+        if(strcmp(buffer,"ack")==0){
+            printf("Acknowledgement %d\n",m);
         }
         else{
-            printf("sent successfully..\n");
-        }
-        int y=recv(client,buffer,19,0);
-        if(strncmp(buffer,"frame",5)==0){
-            printf("acknowledgement received..%d\n",m-1);
-        }
-        else{
-            printf("Acknowledgement lost..\n");
+            printf("Error in acknowledgement\n");
         }
         k--;
         m++;
     }
     close(client);
-
 }
