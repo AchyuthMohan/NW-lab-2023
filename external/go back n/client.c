@@ -1,60 +1,57 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
+#include <sys/socket.h>
 #include <arpa/inet.h>
+#include <netinet/in.h>
+#include <string.h>
+int main()
+{
+    int client;
+    struct sockaddr_in servAddr, clientAddr;
+    socklen_t clientAddrSize = sizeof(clientAddr);
 
-#define PORT 3000
-#define WINDOW_SIZE 4
-#define FRAME_COUNT 8
-
-int main() {
-    int client_fd;
-    struct sockaddr_in server_addr;
-
-    client_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (client_fd < 0) {
-        perror("Socket creation failed");
-        exit(EXIT_FAILURE);
+    client = socket(AF_INET, SOCK_STREAM, 0);
+    servAddr.sin_family = AF_INET;
+    servAddr.sin_port = htons(1345);
+    servAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    if (client < 0)
+    {
+        printf("socket error..\n");
+        exit(1);
     }
 
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
-    server_addr.sin_port = htons(PORT);
-
-    if (connect(client_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-        perror("Connection failed");
-        exit(EXIT_FAILURE);
+    int c = connect(client, (struct sockaddr *)&servAddr, sizeof(servAddr));
+    if (c < 0)
+    {
+        printf("Connection error..\n");
+        exit(1);
     }
-
+    int window_size = 4;
+    int frame_count = 8;
     int send_frame = 0;
     int next_frame_to_send = 0;
     int ack_frame = 0;
-
-    while (send_frame < FRAME_COUNT) {
-        while (next_frame_to_send < send_frame + WINDOW_SIZE && next_frame_to_send < FRAME_COUNT) {
+    while (send_frame < frame_count)
+    {
+        while (next_frame_to_send < window_size + send_frame && next_frame_to_send < frame_count)
+        {
             printf("Sending frame: %d\n", next_frame_to_send);
-            send(client_fd, &next_frame_to_send, sizeof(next_frame_to_send), 0);
+            send(client, &next_frame_to_send, sizeof(next_frame_to_send), 0);
             next_frame_to_send++;
         }
-
-        while (ack_frame <= send_frame) {
-            int received_ack;
-            ssize_t bytes_received = recv(client_fd, &received_ack, sizeof(received_ack), 0);
-
-            if (bytes_received <= 0) {
-                perror("Receiving acknowledgment failed");
-                close(client_fd);
-                exit(1);
-            }
-
-            printf("Received acknowledgment for frame: %d\n", received_ack);
-            ack_frame = (received_ack + 1) % FRAME_COUNT;
+        while (ack_frame <= send_frame)
+        {
+            int recvd_ack;
+            recv(client, &recvd_ack, sizeof(recvd_ack), 0);
+            printf("Acknowledgement: %d\n", recvd_ack);
+            ack_frame = (recvd_ack + 1) % frame_count;
         }
-
         send_frame = ack_frame;
+        if (send_frame == frame_count - 1)
+        {
+            break;
+        }
     }
-
-    close(client_fd);
-    return 0;
+    close(client);
 }

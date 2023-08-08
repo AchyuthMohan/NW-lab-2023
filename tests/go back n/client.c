@@ -35,8 +35,8 @@ int main()
     {
         printf("Connection success..\n");
     }
-    int send_frame = 0;
     int windw_size = 4;
+    int send_frame = 0;
     int nextframe_to_send = 0;
     int ack_frame = 0;
     while (send_frame < frame_count)

@@ -1,82 +1,70 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
+#include <sys/socket.h>
 #include <arpa/inet.h>
-
-#define PORT 12345
-#define FRAME_COUNT 8
-
+#include <netinet/in.h>
+#include <string.h>
 int main()
 {
-    int server_fd, client_fd;
-    struct sockaddr_in server_addr, client_addr;
-    socklen_t client_len = sizeof(client_addr);
+    int server, client;
+    struct sockaddr_in servAddr, clientAddr;
+    socklen_t clientAddrSize = sizeof(clientAddr);
 
-    // Create socket
-    server_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (server_fd < 0)
+    server = socket(AF_INET, SOCK_STREAM, 0);
+    servAddr.sin_family = AF_INET;
+    servAddr.sin_port = htons(1345);
+    servAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    if (server < 0)
     {
-        perror("Socket creation failed");
-        exit(EXIT_FAILURE);
+        printf("socket error..\n");
+        exit(1);
     }
-
-    // Configure server address
-    memset(&server_addr, 0, sizeof(server_addr));
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = INADDR_ANY;
-    server_addr.sin_port = htons(PORT);
-
-    // Bind socket
-    if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
+    int b = bind(server, (struct sockaddr *)&servAddr, sizeof(servAddr));
+    if (b < 0)
     {
-        perror("Binding failed");
-        exit(EXIT_FAILURE);
+        printf("Binding error\n");
+        exit(1);
     }
-
-    // Listen for incoming connections
-    if (listen(server_fd, 5) < 0)
+    if (listen(server, 5) == 0)
     {
-        perror("Listening failed");
-        exit(EXIT_FAILURE);
+        printf("Listening..\n");
     }
-
-    printf("Server is listening...\n");
-    client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_len);
-    while (1)
+    else
     {
-        // Accept client connection
-
-        if (client_fd < 0)
+        printf("Listening error.\n");
+        exit(1);
+    }
+    client = accept(server, (struct sockaddr *)&clientAddr, &clientAddrSize);
+    if (client < 0)
+    {
+        printf("Accept error..\n");
+        exit(1);
+    }
+    int expected_frame = 0;
+    int window_size = 4;
+    int frame_count = 8;
+    while (expected_frame < frame_count)
+    {
+        int recvd_frame;
+        recv(client, &recvd_frame, sizeof(recvd_frame), 0);
+        if (recvd_frame == expected_frame)
         {
-            perror("Accepting connection failed");
-            continue;
+            printf("frame received: %d\n", recvd_frame);
+            printf("Sending ack for %d\n", expected_frame);
+            send(client, &expected_frame, sizeof(expected_frame), 0);
+            expected_frame = expected_frame+1;
         }
-
-        printf("Client connected\n");
-
-        int expected_frame = 0;
-
-        while (expected_frame < FRAME_COUNT)
+        else
         {
-            int received_frame;
-            recv(client_fd, &received_frame, sizeof(received_frame), 0);
-
-            printf("Received frame: %d\n", received_frame);
-
-            if (received_frame == expected_frame)
-            {
-                printf("Sending acknowledgment for frame %d\n", expected_frame);
-                send(client_fd, &expected_frame, sizeof(expected_frame), 0);
-                expected_frame = (expected_frame + 1) % FRAME_COUNT;
-            }
-            else
-            {
-                printf("Discarding frame %d\n", received_frame);
-            }
+            printf("Discarding ..%d\n", recvd_frame);
+        }
+        if (expected_frame == frame_count - 1)
+        {
+            break;
         }
     }
-    close(client_fd);
-    close(server_fd);
+    close(client);
+    close(server);
     return 0;
 }
