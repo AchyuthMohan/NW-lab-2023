@@ -1,11 +1,10 @@
 #include<stdio.h>
 #include<stdlib.h>
-#include<string.h>
+#include<unistd.h>
 #include<sys/socket.h>
 #include<arpa/inet.h>
 #include<netinet/in.h>
-#include<unistd.h>
-
+#include<string.h>
 int main(){
     int server;
     struct sockaddr_in servAddr,clientAddr;
@@ -13,34 +12,29 @@ int main(){
     char buffer[1024];
     server=socket(AF_INET,SOCK_DGRAM,0);
     servAddr.sin_family=AF_INET;
-    servAddr.sin_port=htons(6565);
+    servAddr.sin_port=htons(3000);
     servAddr.sin_addr.s_addr=inet_addr("127.0.0.1");
-
-    if(server==-1){
-        printf("Socket error..\n");
+    if(server<0){
+        printf("Error.\n");
         exit(1);
     }
     else{
-        printf("Socket created successfully..\n");
+        printf("Socket created..\n");
     }
-    int x=bind(server,(struct sockaddr *)&servAddr,sizeof(servAddr));
-    if(x==-1){
-        printf("error binding..\n");
-        exit(1);
-    }
-    else{
-        printf("Binded successfully..\n");
-    }
+    bind(server,(struct sockaddr *)&servAddr,sizeof(servAddr));
+    // if(listen(server,5)==0){
+    //     printf("Listening...\n");
+    // }
+    // else{
+    //     printf("Listen error..\n");
+    //     exit(1);
+    // }
     while(1){
         recvfrom(server,buffer,1024,0,(struct sockaddr *)&clientAddr,&clientAddrSize);
-        printf("Message from client: %s\n",buffer);
-        printf("Enter the content to be send to client: \n");
+        printf("From client: %s\n",buffer);
+        printf("Enter the mesage: \n");
         scanf("%s",buffer);
-        if(strcmp(buffer,"exit")==0){
-            break;
-        }
         sendto(server,buffer,sizeof(buffer),0,(struct sockaddr *)&clientAddr,clientAddrSize);
     }
     close(server);
-    exit(0);
 }
